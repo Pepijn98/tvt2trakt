@@ -21,3 +21,4 @@
 go.work
 
 *.csv
+config.toml
