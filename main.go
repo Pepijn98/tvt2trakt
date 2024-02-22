@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
 	"log"
 	"os"
 	"slices"
@@ -129,7 +131,7 @@ func main() {
 
 			shows = append(shows, show)
 		} else {
-			show := shows[idx]
+			show := &shows[idx]
 
 			episode_num, err := strconv.Atoi(tvt_show.EpisodeNumber)
 			if err != nil {
@@ -170,4 +172,7 @@ func main() {
 	// fmt.Println(shows[0])
 	fmt.Printf("%+v\n", shows[0])
 	// fmt.Println(shows)
+
+	data, _ := json.Marshal(shows)
+	os.WriteFile("./seen_episodes.json", data, fs.ModeAppend)
 }
