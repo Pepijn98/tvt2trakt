@@ -2,10 +2,8 @@ package main
 
 import (
 	"encoding/csv"
-	"encoding/json"
 	"fmt"
 	"io"
-	"io/fs"
 	"log"
 	"os"
 	"slices"
@@ -173,6 +171,6 @@ func main() {
 	fmt.Printf("%+v\n", shows[0])
 	// fmt.Println(shows)
 
-	data, _ := json.Marshal(shows)
-	os.WriteFile("./seen_episodes.json", data, fs.ModeAppend)
+	// data, _ := json.Marshal(shows)
+	// os.WriteFile("./seen_episodes.json", data, fs.ModeAppend)
 }
