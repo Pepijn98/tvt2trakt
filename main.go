@@ -6,6 +6,8 @@ import (
 	"io"
 	"log"
 	"os"
+	"slices"
+	"strconv"
 
 	"github.com/BurntSushi/toml"
 	"github.com/jszwec/csvutil"
@@ -17,13 +19,30 @@ type Config struct {
 	TraktUsername string `toml:"trakt_username"`
 }
 
-type TvShow struct {
+type TvTimeShow struct {
 	CreatedAt           string `csv:"created_at"`
 	TvShowName          string `csv:"tv_show_name"`
 	EpisodeSeasonNumber string `csv:"episode_season_number"`
 	EpisodeNumber       string `csv:"episode_number"`
 	EpisodeID           string `csv:"episode_id"`
 	UpdatedAt           string `csv:"updated_at"`
+}
+
+type Episode struct {
+	CreatedAt string
+	Number    int
+	ID        string
+	UpdatedAt string
+}
+
+type Season struct {
+	Number   int
+	Episodes []Episode
+}
+
+type Show struct {
+	Name    string
+	Seasons []Season
 }
 
 func main() {
@@ -49,7 +68,7 @@ func main() {
 	reader := csv.NewReader(csv_file)
 	reader.Comma = ','
 
-	headers, err := csvutil.Header(TvShow{}, "csv")
+	headers, err := csvutil.Header(TvTimeShow{}, "csv")
 	if err != nil {
 		// TODO: Handle error properly
 		fmt.Println(err)
@@ -61,10 +80,10 @@ func main() {
 		fmt.Println(err)
 	}
 
-	var shows []TvShow
+	var shows []Show
 	for {
-		var show TvShow
-		if err := dec.Decode(&show); err != nil {
+		var tvt_show TvTimeShow
+		if err := dec.Decode(&tvt_show); err != nil {
 			if err == io.EOF {
 				break
 			}
@@ -72,12 +91,83 @@ func main() {
 		}
 
 		// Don't append csv headers
-		if show.TvShowName == "tv_show_name" {
+		if tvt_show.TvShowName == "tv_show_name" {
 			continue
 		}
 
-		shows = append(shows, show)
+		// Probably not the most optimal but a quick way to have the shows in a proper data structure
+		// Each show has a seasons array and each season has an episodes array
+		// In my head this seems the most logical way to do it right now but trakt api might operate different I don't know yet
+		idx := slices.IndexFunc(shows, func(s Show) bool { return s.Name == tvt_show.TvShowName })
+		if idx == -1 {
+			episode_num, err := strconv.Atoi(tvt_show.EpisodeNumber)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			episode := Episode{
+				CreatedAt: tvt_show.CreatedAt,
+				Number:    episode_num,
+				ID:        tvt_show.EpisodeID,
+				UpdatedAt: tvt_show.UpdatedAt,
+			}
+
+			season_num, err := strconv.Atoi(tvt_show.EpisodeSeasonNumber)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			season := Season{
+				Number:   season_num,
+				Episodes: []Episode{episode},
+			}
+
+			show := Show{
+				Name:    tvt_show.TvShowName,
+				Seasons: []Season{season},
+			}
+
+			shows = append(shows, show)
+		} else {
+			show := shows[idx]
+
+			episode_num, err := strconv.Atoi(tvt_show.EpisodeNumber)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			episode := Episode{
+				CreatedAt: tvt_show.CreatedAt,
+				Number:    episode_num,
+				ID:        tvt_show.EpisodeID,
+				UpdatedAt: tvt_show.UpdatedAt,
+			}
+
+			season_num, err := strconv.Atoi(tvt_show.EpisodeSeasonNumber)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			idx := slices.IndexFunc(show.Seasons, func(s Season) bool { return s.Number == season_num })
+			if idx == -1 {
+				season := Season{
+					Number:   season_num,
+					Episodes: []Episode{episode},
+				}
+				show.Seasons = append(show.Seasons, season)
+			} else {
+				episodes := show.Seasons[idx].Episodes
+				episodes = append(episodes, episode)
+				season := Season{
+					Number:   season_num,
+					Episodes: episodes,
+				}
+				show.Seasons[idx] = season
+			}
+		}
 	}
 
-	fmt.Println(shows[0])
+	// fmt.Println(shows[0])
+	fmt.Printf("%+v\n", shows[0])
+	// fmt.Println(shows)
 }
