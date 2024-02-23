@@ -1,4 +1,4 @@
-module csv2trakt
+module tvt2trakt
 
 go 1.22.0
 

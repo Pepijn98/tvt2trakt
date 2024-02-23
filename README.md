@@ -1,4 +1,4 @@
-# csv2trakt
+# tvt2trakt
 hello
 
 ## Workflow
