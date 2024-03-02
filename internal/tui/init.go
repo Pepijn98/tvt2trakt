@@ -5,5 +5,5 @@ import (
 )
 
 func (m model) Init() tea.Cmd {
-	return m.filepicker.Init()
+	return nil
 }

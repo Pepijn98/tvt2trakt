@@ -15,10 +15,11 @@ import (
 type session_state int
 
 const (
-	idle_state session_state = iota
-	show_login_state
-	show_options_state
-	show_filepicker_state
+	splash_state session_state = iota
+	login_state
+	options_state
+	filepicker_state
+	exit_state
 )
 
 var (
@@ -66,13 +67,11 @@ func (d item_delegate) Render(w io.Writer, m list.Model, index int, listItem lis
 }
 
 type model struct {
-	list       list.Model
-	filepicker filepicker.Model
-	// filetree      filetree.Model
+	list          list.Model
+	filepicker    filepicker.Model
 	choice        string
 	selected_file string
 	state         session_state
-	quitting      bool
 	err           error
 }
 
@@ -91,17 +90,19 @@ func New() model {
 	options.Styles.PaginationStyle = pagination_style
 	options.Styles.HelpStyle = help_style
 
-	filepicker_model := filepicker.New()
-	filepicker_model.AllowedTypes = []string{".csv"}
-	filepicker_model.CurrentDirectory, _ = os.Getwd()
+	fp_model := filepicker.New()
+	fp_model.AllowedTypes = []string{".csv"}
+	fp_model.AutoHeight = true
+
+	dir, _ := os.Getwd()
+	fp_model.CurrentDirectory = dir + "/data"
 
 	return model{
 		list:          options,
-		filepicker:    filepicker_model,
+		filepicker:    fp_model,
 		choice:        "",
 		selected_file: "",
-		state:         idle_state,
-		quitting:      false,
+		state:         splash_state,
 		err:           nil,
 	}
 }
