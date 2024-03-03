@@ -3,6 +3,7 @@ package tui
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"strings"
 
@@ -92,9 +93,15 @@ func New() model {
 
 	fp_model := filepicker.New()
 	fp_model.AllowedTypes = []string{".csv"}
+	fp_model.DirAllowed = true
+	fp_model.ShowHidden = true
 	fp_model.AutoHeight = true
 
-	dir, _ := os.Getwd()
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Panic(err)
+	}
+
 	fp_model.CurrentDirectory = dir + "/data"
 
 	return model{
