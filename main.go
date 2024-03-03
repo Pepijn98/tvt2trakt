@@ -63,7 +63,7 @@ func main() {
 
 	model := tui.New()
 
-	if _, err := tea.NewProgram(&model, tea.WithOutput(os.Stderr)).Run(); err != nil {
+	if _, err := tea.NewProgram(&model, tea.WithOutput(os.Stderr), tea.WithAltScreen(), tea.WithMouseCellMotion()).Run(); err != nil {
 		fmt.Println("could not start program:", err)
 	}
 }

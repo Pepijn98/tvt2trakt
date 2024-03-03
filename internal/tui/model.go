@@ -95,7 +95,7 @@ func New() model {
 	fp_model.AllowedTypes = []string{".csv"}
 	fp_model.DirAllowed = true
 	fp_model.ShowHidden = true
-	fp_model.AutoHeight = true
+	fp_model.Height = 10 // ALL I HAD TO DO TO SHOW MORE THAN 1 FILE WAS TO ADD HEIGHT WOOOOOOOOOOOOOOOOOOOOOOOOOW (totally didn't waste 2 days haha.. hahahahaha ヽ(｀Д´#)ﾉ)
 
 	dir, err := os.Getwd()
 	if err != nil {
