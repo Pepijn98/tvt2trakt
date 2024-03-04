@@ -65,9 +65,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
-		// if m.state == filepicker_state {
-
-		// }
+		if m.state == filepicker_state {
+			switch key {
+			case "esc":
+				cmds = append(cmds, switch_to(options_state))
+			}
+		}
 	case switch_view:
 		m.state = msg.new_state
 	}

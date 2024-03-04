@@ -5,9 +5,11 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/filepicker"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -16,11 +18,12 @@ import (
 type session_state int
 
 const (
-	splash_state session_state = iota
-	login_state
-	options_state
-	filepicker_state
-	exit_state
+	splash_state     session_state = iota // initial state
+	login_state                           // login to trakt using oauth
+	options_state                         // choose what to import
+	filepicker_state                      // choose csv file to import
+	uploading_state                       // importing data to trakt (show progress bar)
+	exit_state                            // exiting the program
 )
 
 var (
@@ -28,7 +31,7 @@ var (
 	item_style          = lipgloss.NewStyle().PaddingLeft(4)
 	selected_item_style = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
 	pagination_style    = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
-	help_style          = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
+	help_style          = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1).Foreground(lipgloss.AdaptiveColor{Light: "#9B9B9B", Dark: "#5C5C5C"})
 )
 
 type item string
@@ -94,15 +97,38 @@ func New() model {
 	fp_model := filepicker.New()
 	fp_model.AllowedTypes = []string{".csv"}
 	fp_model.DirAllowed = true
-	fp_model.ShowHidden = true
-	fp_model.Height = 10 // ALL I HAD TO DO TO SHOW MORE THAN 1 FILE WAS TO ADD HEIGHT WOOOOOOOOOOOOOOOOOOOOOOOOOW (totally didn't waste 2 days haha.. hahahahaha ヽ(｀Д´#)ﾉ)
+	fp_model.ShowHidden = false
+	fp_model.Height = 8
+
+	fp_model.KeyMap = filepicker.KeyMap{
+		GoToTop:  key.NewBinding(key.WithKeys("g"), key.WithHelp("g", "first")),
+		GoToLast: key.NewBinding(key.WithKeys("G"), key.WithHelp("G", "last")),
+		Down:     key.NewBinding(key.WithKeys("j", "down", "ctrl+n"), key.WithHelp("↓/j", "down")),
+		Up:       key.NewBinding(key.WithKeys("k", "up", "ctrl+p"), key.WithHelp("↑/k", "up")),
+		PageUp:   key.NewBinding(key.WithKeys("K", "pgup"), key.WithHelp("pgup", "page up")),
+		PageDown: key.NewBinding(key.WithKeys("J", "pgdown"), key.WithHelp("pgdown", "page down")),
+		Back:     key.NewBinding(key.WithKeys("h", "backspace", "left"), key.WithHelp("←/h", "back")),
+		Open:     key.NewBinding(key.WithKeys("l", "right", "enter"), key.WithHelp("→/l", "open")),
+		Select:   key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "select")),
+	}
 
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Panic(err)
 	}
 
-	fp_model.CurrentDirectory = dir + "/data"
+	// If the data directory exists, use it else use the user's home directory
+	data_dir := filepath.Join(dir, "data")
+	if _, err := os.Stat(data_dir); !os.IsNotExist(err) {
+		dir = data_dir
+	} else {
+		dir, err = os.UserHomeDir()
+		if err != nil {
+			log.Panic(err)
+		}
+	}
+
+	fp_model.CurrentDirectory = dir
 
 	return model{
 		list:          options,

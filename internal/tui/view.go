@@ -1,8 +1,14 @@
 package tui
 
 import (
+	"fmt"
 	"log"
 	"strings"
+)
+
+const (
+	bullet   = "•"
+	ellipsis = "…"
 )
 
 func (m model) View() string {
@@ -46,6 +52,7 @@ func filepicker_view(m model) string {
 		s.WriteString("Selected file: " + m.filepicker.Styles.Selected.Render(m.selected_file))
 	}
 	s.WriteString("\n\n" + m.filepicker.View() + "\n")
+	s.WriteString("\n" + help_style.Render(fmt.Sprintf("%s %s • %s %s • %s %s • %s %s", m.filepicker.KeyMap.Open.Help().Key, m.filepicker.KeyMap.Open.Help().Desc, m.filepicker.KeyMap.Back.Help().Key, m.filepicker.KeyMap.Back.Help().Desc, m.filepicker.KeyMap.Select.Help().Key, m.filepicker.KeyMap.Select.Help().Desc, "q/ctrl+c", "quit")))
 	return s.String()
 }
 

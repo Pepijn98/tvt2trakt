@@ -68,8 +68,6 @@ func main() {
 	}
 }
 
-// TODO: Implement properly (playing last epoch now fuck it)
-//
 //lint:ignore U1000 Ignore unused function temporarily
 func load_file() {
 	csv_file, err := os.Open("./data/seen_episode_NoAnimeVer_2.csv")
