@@ -6,11 +6,6 @@ import (
 	"strings"
 )
 
-const (
-	bullet   = "•"
-	ellipsis = "…"
-)
-
 func (m model) View() string {
 	switch m.state {
 	case splash_state:

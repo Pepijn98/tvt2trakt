@@ -2,7 +2,9 @@ package tui
 
 import (
 	"fmt"
+	"log"
 	"time"
+	"tvt2trakt/internal/util"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -50,7 +52,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.state == splash_state {
 			switch key {
 			case "enter":
-				cmds = append(cmds, switch_to(options_state))
+				cmds = append(cmds, switch_to(login_state))
 			}
 		}
 
@@ -78,6 +80,26 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch m.state {
 	case splash_state:
 		// m, cmd = update_splash(m, msg)
+	case login_state:
+		// Idk if this is the right url but copilot suggested it so just keeping it here for now (https://trakt.tv/oauth/authorize?response_type=code&client_id=)
+		err := util.Open("https://google.com")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// ch := make(chan tea.Cmd)
+		// go func() {
+		// 	time.Sleep(2 * time.Second)
+		// 	ch <- switch_to(options_state)
+		// }()
+
+		// cmd = <-ch
+		cmds = append(cmds, switch_to(options_state))
+
+		// I'm not sure how trakt does this yet.
+		// I would guess the user has to manually enter a code or we can check with the trakt api to see if the user has authorized the app
+		// If the user has authorized the app, we can continue to the next state
+		// If the user hasn't authorized the app, we quit the app
 	case options_state:
 		m.list, cmd = m.list.Update(msg)
 	case filepicker_state:
